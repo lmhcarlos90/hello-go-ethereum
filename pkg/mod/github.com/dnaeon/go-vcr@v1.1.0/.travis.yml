@@ -1,0 +1,31 @@
+language: go
+
+go:
+  - 1.15
+  - 1.14
+  - 1.13
+  - 1.12
+  - 1.11
+  - 1.10
+  - 1.9
+  - 1.8
+  - 1.7
+  - tip
+
+go_import_path: github.com/dnaeon/go-vcr
+
+before_install:
+- go get github.com/modocache/gover
+
+install:
+  - make get
+
+script:
+  - make test_cover
+
+after_success:
+  - bash <(curl -s https://codecov.io/bash)
+
+matrix:
+  allow_failures:
+    - go: tip

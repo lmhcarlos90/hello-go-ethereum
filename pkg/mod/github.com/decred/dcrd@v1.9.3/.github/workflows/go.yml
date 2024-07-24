@@ -1,0 +1,36 @@
+name: Build and Test
+on: [push, pull_request]
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Go CI
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go: ["1.21", "1.22"]
+    steps:
+      - name: Check out source
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
+      - name: Set up Go
+        uses: actions/setup-go@0c52d547c9bc32b1aa3301fd7a9cb496313a4491 #v5.0.0
+        with:
+          go-version: ${{ matrix.go }}
+      - name: Use lint cache
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.3.2
+        with:
+          path: |
+            ~/.cache/golangci-lint
+          key: go-lint-${{ matrix.go }}-${{ hashFiles('./go.sum') }}
+          restore-keys: go-lint-${{ matrix.go }}
+      - name: Stablilize testdata timestamps
+        run: |
+          bash ./.github/stablilize_testdata_timestamps.sh "${{ github.workspace }}"
+      - name: Install Linters
+        run: "go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.0"
+      - name: Build
+        run: go build ./...
+      - name: Test
+        run: |
+          sh ./run_tests.sh
